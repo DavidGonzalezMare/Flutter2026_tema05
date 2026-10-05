@@ -24,7 +24,7 @@ El trabajo con la nube implica que las aplicaciones deben estar preparadas para 
 <br>
 <br>
 
-# <a name="_apartado1"></a>1. El Widget FutureBuilder
+# <a id="_apartado1"></a>1. El Widget FutureBuilder
 
 Hoy en día las aplicaciones, ya sean de escritorio, pero sobre todo móviles, están fuertemente integradas en la nube, y hacen uso de múltiples servicios de Internet para diversos fines, como pueda ser la obtención de información o la gestión de la persistencia. El trabajo con la nube supone que las aplicaciones deben estar preparadas para trabajar en entornos de naturaleza asíncrona, donde la respuesta a una petición no es inmediata. 
 
@@ -250,7 +250,7 @@ Si reemplazamos la obtención del future per `future:null` (la línea comentada 
 <br>
 <br>
 
-# <a name="_apartado2"></a>2. Un ejemplo con FutureBuilder. Geolocalización.
+# <a id="_apartado2"></a>2. Un ejemplo con FutureBuilder. Geolocalización.
 
 La gran mayoría de recursos y servicios se ofrecen de forma asíncrona. En este apartado veremos, a modo de ejemplo la librería **geolocator**, que sirve para obtener la ubicación actual del dispositivo.
 
@@ -535,7 +535,7 @@ Como vemos, en primer lugar, se hacen varias comprobaciones sobre la respuesta d
 <br>
 <br>
 
-# <a name="_apartado3"></a>3. Una app del tiempo
+# <a id="_apartado3"></a>3. Una app del tiempo
 
 En este apartado vamos a ver cómo podríamos hacer una aplicación que nos proporcione información sobre el tiempo en la ubicación del dispositivo.
 
@@ -998,7 +998,7 @@ El método recibe un valor en coma flotante con la dirección del viento, expres
 <br>
 <br>
 
-# <a name="_apartado4"></a>4. El Widget StreamBuilder
+# <a id="_apartado4"></a>4. El Widget StreamBuilder
 
 Como se ha dicho en clase el StreamBuilder no entra para esta primera evaluación pero aquí tenéis un enlace en el que se explica ya:
 
