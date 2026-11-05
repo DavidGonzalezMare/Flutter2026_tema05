@@ -3,13 +3,15 @@
 <br>
 <br>
 
-# Unitat 5. Construcción asíncrona de Widgets
+# Unidad 5. Construcción asíncrona de Widgets
 
 ![FutureBuilder](./images/imagen01.png)
 
 Hoy en día, la gran mayoría de aplicaciones, y especialmente las aplicaciones móviles están fuertemente integradas en la nube, y hacen uso de múltiples servicios de Internet.
 
 El trabajo con la nube implica que las aplicaciones deben estar preparadas para trabajar en entornos de naturaleza asíncrona, donde la respuesta a una petición no es inmediata. En esta unidad veremos uno de los widgets principales que hacen posible la construcción asíncrona de interfaces: **FutureBuilder**. 
+
+El lenguaje Dart incorpora mediante los objetos `Future` un mecanismo para gestionar operaciones asíncronas. Flutter proporciona widgets como `FutureBuilder` y `StreamBuilder` que permiten construir interfaces adaptadas a estos procesos.
 
 
 [1.	El Widget FutureBuilder](#_apartado1)
@@ -62,11 +64,11 @@ respuesta.then((valorRespuesta) => print("Respuesta: $valorRespuesta"));
 
 **Opción 2: Hacer síncrona la función asíncrona**
 
-Para ello hacíamos uso de la combinación `async/await`, con el fin de esperarnos a que finalizara la función asíncrona y acceder directamente al resultado. Es decir, convertimos una función asíncrona en una síncrona:
+Para ello hacíamos uso de la combinación `async/await`, que nos permite escribir código asíncrono con una sintaxis similar al código secuencial, esperando la resolución del `Future` antes de continuar:
 
 ```dart
 nombreFuncion() async {
-  String respuesta=await funcioAsincrona();
+  String respuesta=await funcionAsincrona();
     print("Resposta: $respuesta");
 }
 ```
@@ -96,7 +98,7 @@ Este constructor del widget recibe tres argumentos con nombre:
   
 - `initialData`: con el valor inicial para el futuro hasta que se resuelva éste, 
   
-- `builder`: Este es el único argumento requerido, y se trata de una función anónima que se invocará una vez se ha resuelto el Future con el fin de generar el widget. Esta función recibe el `context` y un objeto de tipo `AsyncSnapshot` con información sobre el estado del Future y su resultado si se ha completado. Este `snapshot` (*instantánea*) contendrá, entre otros, el flag `hasData` que informa sobre la resolución del Future y de la propiedad `data`, donde se encuentra el valor al que se ha resuelto el Future. En caso de que se haya producido algún error, también disponemos del flag `haserror` para indicarlo y la propiedad `error` con la descripción del mismo.
+- `builder`: Este es el único argumento requerido, y se trata de una función anónima que se invocará una vez se ha resuelto el Future con el fin de generar el widget. Esta función recibe el `context` y un objeto de tipo `AsyncSnapshot` con información sobre el estado del Future y su resultado si se ha completado. Este `snapshot` (*instantánea*) contendrá, entre otros, el flag `hasData` que informa sobre la resolución del Future y de la propiedad `data`, donde se encuentra el valor al que se ha resuelto el Future. En caso de que se haya producido algún error, también disponemos del flag `hasError` para indicarlo y la propiedad `error` con la descripción del mismo.
 
 Vemos como haríamos uso de este widget para generar un widget para la interfaz de usuario como respuesta al resultado de la función asíncrona definida previamente:
 
@@ -119,7 +121,9 @@ class WidgetAsincrono extends StatelessWidget {
 }
 ```
 
-Como vemos, hemos creado la clase `WidgetAsincrono`, la cual nos construye un `FutureBuilder`. Este `FutureBuilder` depende de la función asíncrona `funcioAsincrona` definida previamente. Mientras ésta no se haya resuelto, el valor que contendrá `snapshot` será el que hemos asignado de manera predeterminada a `initialData`, de manera que inicialmente, el `builder` construirá el widget con este valor. Cuando el *Future* de la función asíncrona se resuelva, el valor del ***snapshot*** cambiará, cambiando el estado del FutureBuilder y forzando el redibujado del widget con el resultado. 
+Como vemos, hemos creado la clase `WidgetAsincrono`, la cual nos construye un `FutureBuilder`. Este `FutureBuilder` depende de la función asíncrona `funcionAsincrona` definida previamente. Mientras ésta no se haya resuelto, el valor que contendrá `snapshot` será el que hemos asignado de manera predeterminada a `initialData`, de manera que inicialmente, el `builder` construirá el widget con este valor.  
+Cuando el *Future* de la función asíncrona se resuelva, el valor del ***snapshot*** cambiará, cambiando el estado del FutureBuilder y forzando el redibujado del widget con el resultado.
+El desarrollador **no necesita** llamar manualmente a `setState()`, ya que `FutureBuilder` detecta automáticamente el cambio de estado del Future y reconstruye el widget cuando recibe el resultado.
 
 De esta manera, la aplicación mostrará el texto *"Esperando respuesta..."*, y al cabo de un tiempo éste cambiará a *"Valor de retorno"*, que es el que devolvía esta función.
 
@@ -154,7 +158,7 @@ Este indicador suele tener un tamaño relativamente pequeño, por lo que podemos
 
 ```dart
 return FutureBuilder(
-  future: funcioAsincrona(),
+  future: funcionAsincrona(),
   builder: (BuildContext context, AsyncSnapshot snapshot) {
     if (snapshot.hasData) {
       return Center(child: Text(snapshot.data.toString()));
@@ -174,7 +178,7 @@ El widget `LinearProgressIndicator` nos muestra un indicador de progreso lineal,
 
 ```dart
 return FutureBuilder(
-  future: funcioAsincrona(),
+  future: funcionAsincrona(),
   builder: (BuildContext context, AsyncSnapshot snapshot) {
     if (snapshot.hasData) {
       return Center(child: Text(snapshot.data.toString()));
@@ -199,8 +203,8 @@ El *Snapshot* que se nos devuelve contiene más información sobre la respuesta,
 
 - `none`: para indicar que la conexión aún no se ha iniciado, de manera que se usa `initialData`,
 - `waiting`: para indicar que ha comenzado la operación asíncrona, y probablemente el contenido de los datos del *Snaphot* sean nulas.
-- `active`: para indicar que el snaphot contiene datos válidos (no nulos), y probablemente cambiantes con el tiempo.
-- `done`: para indicar que el *Snapshot* contiene datos y estos no son nulos.
+- `active`: para indicar que el snaphot contiene datos válidos (no nulos), y probablemente cambiantes con el tiempo. El estado active suele utilizarse principalmente con `StreamBuilder`, donde los datos pueden actualizarse continuamente. En un FutureBuilder es habitual pasar directamente de waiting a done.
+- `done`: para indicar que la operación asíncrona ha finalizado, tanto si devuelve datos como si finaliza con un error.
 
 Veamos de nuevo el ejemplo incluyendo la comprobación de este estado:
 
@@ -215,16 +219,16 @@ class WidgetAsincrono extends StatelessWidget {
   Widget build(BuildContext context) {
     return FutureBuilder(
       //future: null,
-      future: funcionAsincrona(), // Comentar per provar la línia de dalt
+      future: funcionAsincrona(), // Comentar para probar la línea de arriba
       initialData: "Valor inicial",
       builder: (BuildContext context, AsyncSnapshot snapshot) {
         String text = "";
         if (snapshot.connectionState == ConnectionState.none) {
-          text = "Estat ConnectionState.none.\n Data=${snapshot.data.toString()}";
+          text = "Estado ConnectionState.none.\n Data=${snapshot.data.toString()}";
         } else if (snapshot.connectionState == ConnectionState.waiting) {
-          text = "Estat ConnectionState.Waiting.\n Esperando respuesta...";
+          text = "Estado ConnectionState.Waiting.\n Esperando respuesta...";
         } else if (snapshot.connectionState == ConnectionState.done) {
-          text = "Estat ConnectionState.done.\nData=${snapshot.data.toString()}";
+          text = "Estado ConnectionState.done.\nData=${snapshot.data.toString()}";
         }
 
         return Center(
@@ -239,7 +243,9 @@ class WidgetAsincrono extends StatelessWidget {
 
 Este código nos mostrará el estado *ConnectionState.Waiting* hasta que se reciba la respuesta. Cuando tengamos la respuesta, mostraremos el estado *Done* y el resultado de la misma.
 
-Si reemplazamos la obtención del future per `future:null` (la línea comentada y comentamos la línea `future:funcioAsincrona()`), veremos que el estado se nos muestra como `None`, ya que no iniciamos la conexión en ningún momento.
+Si reemplazamos la obtención del future per `future:null` (la línea comentada y comentamos la línea `future:funcionAsincrona()`), veremos que el estado se nos muestra como `None`, ya que no iniciamos la conexión en ningún momento.
+
+En aplicaciones reales suele almacenarse el Future (`funcionAsincrona`) en una variable creada en `initState()`, evitando que una reconstrucción del widget vuelva a ejecutar la operación asíncrona.
 
 <hr>
 
@@ -266,9 +272,10 @@ El repositorio [pub.dev](https://pub.dev/) nos ofrece para cada paquete informac
 
 Tal y como podemos ver en la imagen de arriba, aparte del nombre del paquete y su versión, se nos muestra otra información que conviene tener en cuenta antes de utilizar un paquete:
 
-- Nos muestra una etiqueta (Null Safety) si la librería está escrita con el sistema de tipo *null safety* de Dart (a partir de la versión 2.12 del lenguaje). Esto no significa que sus funciones retornen siempre valores no nulos, sino que, se indica explícitamente cuando una función puede devolver un tipo potencialmente nulo (¿con Tipo?). Por ejemplo, algunas funciones de esta librería pueden devolver un tipo null cuando no se es capaz de determinar la ubicación.
+- Nos muestra una etiqueta (Null Safety) si la librería está escrita con el sistema de tipo *null safety* de Dart (a partir de la versión 2.12 del lenguaje). Esto no significa que sus funciones retornen siempre valores no nulos, sino que, se indica explícitamente cuando una función puede devolver un tipo potencialmente nulo. Por ejemplo, algunas funciones de esta librería pueden devolver un tipo null cuando no se es capaz de determinar la ubicación. Estas funciones devolverán un tipo nullable, indicado con el operador `?`.
   
 - Para qué SDK está creada (Flutter),
+  
 - Para qué plataformas es compatible (en este caso: Android, iOS, MacOS, Web y Windows). Para Linux, habría que incorporar también la librería [geolocator_linux](https://pub.dev/packages/geolocator_linux).
 
 ---
@@ -355,7 +362,7 @@ Entre las diferentes funcionalidades que nos ofrece, encontramos:
 
 Finalmente, dado que el paquete contiene código específico de la plataforma, deberemos recompilar y reiniciar la aplicación, ya que un *hot reload* o *hot restart* solo afecta al código Dart.
 
-Pasamos ahora a ver el código que nos implementa la funcionalidad para obtener la ubicación. Para ello, implementamos en el fichero `lib/services/geolocation_service.dart` la clase `GeolocationService`, que implementará el método `determinaPosicio()`.
+Pasamos ahora a ver el código que nos implementa la funcionalidad para obtener la ubicación. Para ello, implementamos en el fichero `lib/services/geolocation_service.dart` la clase `GeolocationService`, que implementará el método `determinaPosicion()`.
 
 ---
 
@@ -375,17 +382,17 @@ Pues bien, este método `determinaPosicion` de la clase `GeolocationService` hac
 import 'package:geolocator/geolocator.dart';
 
 class GeolocationService {
-  static Future<Position?> determinaPosicion() async {
+  static Future<Position> determinaPosicion() async {
 
     //  Declaración de variables
     bool serviceEnabled;
     LocationPermission permission;
 
-    // Comprobamos que el servicio de geolocalitazción esté en funcionamiento
+    // Comprobamos que el servicio de geolocalización esté en funcionamiento
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
 
     if (!serviceEnabled) {
-      // Si el servicio de geolocalitzación no está activo, devolvermos un error 
+      // Si el servicio de geolocalitzación no está activo, devolveremos un error 
       // para informar al usuario. Para ello hacemos uso de Future.error
       return Future.error('El servicio de geolocalitzación está desactivado');
     }
@@ -395,7 +402,7 @@ class GeolocationService {
 
     // Si no tenemos permisos...
     if (permission == LocationPermission.denied) {
-      // Pedimos permiso al usuiaro (observemos que utilizamos await
+      // Pedimos permiso al usuario (observemos que utilizamos await
       // para esperar que el usuario conceda explícitamente el permiso)
 
       permission = await Geolocator.requestPermission();
@@ -403,7 +410,7 @@ class GeolocationService {
       // Si el usuario no ha concedido el permiso...
       if (permission == LocationPermission.denied) {
         // Se devuelve un error indicando que no se tienen
-        // permisos para obtenir la ubicación. La próxima vez
+        // permisos para obtener la ubicación. La próxima vez
         // que se lance la aplicación se volverá a preguntar
 
         return Future.error(
@@ -416,7 +423,7 @@ class GeolocationService {
 
     if (permission == LocationPermission.deniedForever) {
       return Future.error('''El acceso a la ubicación del dispositivopor parte de la 
-  aplicación se ha dengado de manera persistente.\n Si queréis modificar 
+  aplicación se ha denegado de manera persistente.\n Si queréis modificar 
   el permiso, podéis hacerlo desde la configuración de la aplicación''');
     }
 
@@ -428,7 +435,7 @@ class GeolocationService {
 
 Observemos que este método se declara como `static Future<Position?>`, lo que quiere decir que devuelve un tipo *Future* que se resolverá a un tipo *Position*. Este tipo `Position` está definido también en la librería *geolocator*, y representa una posición con su latitud y longitud.
 
-Sin embargo, lo que nos interesa **es cómo tratar este *Future* que se nos devuelve** y cómo dibujar el widget correspondiente. Para ello haremos uso de un widget *FutureBuilder* que dependerá de este *Future* para redibujarse.
+Sin embargo, lo que nos interesa **es cómo tratar este *Future* que se nos devuelve** y cómo dibujar el widget correspondiente. Para ello haremos uso de un widget *º* que dependerá de este *Future* para redibujarse.
 
 Este widget se define en el fichero `lib/widgets/mostrar_coordenadas.dart` tendrá la siguiente estructura:
 
@@ -438,7 +445,7 @@ class WidgetMuestraCoordenadas extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
+    return FutureBuilder<Position>(
       future: GeolocationService.determinaPosicion(),
       builder: (BuildContext context, AsyncSnapshot snapshot) {
         // ...
@@ -471,7 +478,7 @@ Una vez importado, podremos hacer uso del método `MapsLauncher.launchCoordinate
 Veamos ahora cuál es el contenido del componente `builder` de este widget:
 
 ```dart
-builder: (BuildContext context, AsyncSnapshot snapshot) {
+builder: (BuildContext context, AsyncSnapshot<Position> snapshot) {
   String text = "";
   double latitud = 0.0;
   double longitud = 0.0;
@@ -485,8 +492,8 @@ builder: (BuildContext context, AsyncSnapshot snapshot) {
     } else if (snapshot.hasData) {
       // O si contiene datos. En este caso la longitud y la latitud
       // y el texto para mostrarlas:
-      latitud = snapshot.data.latitude ?? 0.0;
-      longitud = snapshot.data.longitude ?? 0.0;
+      latitud = snapshot.data.latitude;
+      longitud = snapshot.data.longitude;
       text = "Ubicación actual: ($latitud, $longitud)";
     }
 
@@ -498,20 +505,22 @@ builder: (BuildContext context, AsyncSnapshot snapshot) {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(text),
-          ElevatedButton(
-              onPressed: () async {
-                try {
-                  await MapsLauncher.launchCoordinates(latitud, longitud);
-                } catch (err) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content:
-                          Text("No se ha encontrado una aplicación de mapas"),
-                    ),
-                  );
-                }
-              },
-              child: const Text("Abre la ubicación"))
+          if (snapshot.hasData) { // Mostramos el botón si tenemos datos
+            ElevatedButton(
+                onPressed: () async {
+                  try {
+                    await MapsLauncher.launchCoordinates(latitud, longitud);
+                  } catch (err) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content:
+                            Text("No se ha encontrado una aplicación de mapas"),
+                      ),
+                    );
+                  }
+                },
+                child: const Text("Abre la ubicación"))
+          }
         ],
       ),
     );
@@ -583,7 +592,7 @@ El primer código que vamos a generar será una función para obtener la posici�
 import 'package:geolocator/geolocator.dart';
 
 class GeolocationService {
-  static Future<dynamic?> determinaPosicion() async {
+  static Future<Map<String,double>> determinaPosicion() async {
 
     ...
     // Código para comprobar el servicio de geolocalización y los permisos 
@@ -611,7 +620,7 @@ Como vemos, la API se encuentra en la dirección `https://api.open-meteo.com/v1/
 
 Podéis probar a copiar esta dirección en un navegador web, para ver cómo es la respuesta. Ésta tendrá la forma:
 
-```xml
+```json
 {
    "latitude":38.97,
    "longitude":-0.1800003,
@@ -769,8 +778,8 @@ class WidgetClima extends StatefulWidget {
     super.key,
   }); 
 
-  final double? latitud;
-  final double? longitud;
+  final double latitud;
+  final double longitud;
 
   @override
   State<WidgetClima> createState() => _WidgetClimaState();
@@ -789,7 +798,7 @@ class _WidgetClimaState extends State<WidgetClima> {
   void initState() {
     super.initState();
     info = WeatherService.obtenerClima(
-        longitud: widget.longitud ?? 0.0, latitud: widget.latitud ?? 0.0);
+        longitud: widget.longitud, latitud: widget.latitud);
   }
 
   @override
@@ -811,6 +820,7 @@ class _WidgetClimaState extends State<WidgetClima> {
 Este estado define la propiedad `info`, como un `Future` que se resolverá a un objeto `dynamic`, y que será el resultado del método `obtenerClima`, definido en la clase `WeatherService`.
 
 Observemos que esta propiedad se ha definido como `late`. Esto se hace para indicar que el valor de una variable que requiere de inicialización se realizará posteriormente. En caso de que no hagamos esta inicialización posterior, el sistema lanzará la excepción ***LateInitializationError***. Por otra parte, esta inicialización se hace en el método `initState()`, de inicialización del estado.
+Observa que el Future se crea una única vez en initState() y no en build(), evitando lanzar varias veces la misma petición HTTP cuando el widget se reconstruye.
 
 Después, el método `build`, consistirá en un ***FutureBuilder*** que depende de esta propiedad `info`. Vemos que se han definido también un par de métodos privados: `_obtenerWidgetDireccionViento` y `_obtenerIconoTiempo`, que servirán para obtener algunas partes del widget del tiempo resultante.
 
@@ -818,7 +828,7 @@ Veamos ahora cómo se construye el widget en este componente `builder`. El esque
 
 ```dart
 builder: (BuildContext context, AsyncSnapshot snapshot) {
-if (snapshot.hasData) {
+  if (snapshot.hasData) {
      // Una vez se resuelve el Future, tendremos disponible
     // la información necesaria para construir el widget
 
@@ -833,7 +843,7 @@ if (snapshot.hasData) {
     String codigo =
         snapshot.data["current_weather"]["weathercode"].toString();
 
-    // Y ahora cremaos el widget
+    // Y ahora creamos el widget
 
     return Column(...);
 }
@@ -917,7 +927,7 @@ Veamos el código completo:
       "96",
       "99"
     };
-    Set<String> neu = <String>{"71", "73", "75", "77", "85", "86"};
+    Set<String> nieve = <String>{"71", "73", "75", "77", "85", "86"};
 
     if (sol.contains(value)) {
       return Image.asset("assets/icons/png/soleado.png");
@@ -934,7 +944,7 @@ Veamos el código completo:
     if (lluvia.contains(value)) {
       return Image.asset("assets/icons/png/lluvia.png");
     }
-    if (neu.contains(value)) {
+    if (nieve.contains(value)) {
       return Image.asset("assets/icons/png/nieve.png");
     }
 
@@ -950,36 +960,35 @@ Este método nos devuelve una fila (`Row`) con dos elementos: Un texto con el no
 El método recibe un valor en coma flotante con la dirección del viento, expresada en grados, de manera que sólo debemos determinar en qué rango se encuentra esta dirección para establecer el icono y el nombre del viento correspondiente:
 
 ```dart
-  Widget _obtenerWidgetDireccionViento(String direccionViento) {
+  Widget _obtenerWidgetDireccionViento(double direccionViento) {
     // Esta función nos devuelve un widget que contiene
     // un icono y un texto, con la dirección y el nombre del viento
     // segun su dirección.
     // Utilizamos `late` para indicar que asignaremos el valor después
     // a las variables.
 
-    double dir = double.parse(direccionViento);
     late Icon icono;
     late String nombreViento;
 
-    if (dir > 22.5 && dir < 65.5) {
+    if (direccionViento > 22.5 && direccionViento < 65.5) {
       icono = const Icon(Icons.north_east);
       nombreViento = "Gregal";
-    } else if (dir > 67.5 && dir < 112.5) {
+    } else if (direccionViento > 67.5 && direccionViento < 112.5) {
       icono = const Icon(Icons.east);
       nombreViento = "Llevant";
-    } else if (dir > 112.5 && dir < 157.5) {
+    } else if (direccionViento > 112.5 && direccionViento < 157.5) {
       icono = const Icon(Icons.south_east);
       nombreViento = "Xaloc";
-    } else if (dir > 157.5 && dir < 202.5) {
+    } else if (direccionViento > 157.5 && direccionViento < 202.5) {
       icono = const Icon(Icons.south);
       nombreViento = "Migjorn";
-    } else if (dir > 202.5 && dir < 247.5) {
+    } else if (direccionViento > 202.5 && direccionViento < 247.5) {
       icono = const Icon(Icons.south_west);
       nombreViento = "Llebeig/Garbí";
-    } else if (dir > 247.5 && dir < 292.5) {
+    } else if (direccionViento > 247.5 && direccionViento < 292.5) {
       icono = const Icon(Icons.west);
       nombreViento = "Ponent";
-    } else if (dir > 292.5 && dir < 337.5) {
+    } else if (direccionViento > 292.5 && direccionViento < 337.5) {
       icono = const Icon(Icons.north_west);
       nombreViento = "Mestral";
     } else {
@@ -1002,4 +1011,4 @@ El método recibe un valor en coma flotante con la dirección del viento, expres
 
 Como se ha dicho en clase el StreamBuilder no entra para esta primera evaluación pero aquí tenéis un enlace en el que se explica ya:
 
-[El Widget StreamBuilder](./streambuilder.md)
+[El Widget StreamBuilder](./streambuilder.md#_apartado1)

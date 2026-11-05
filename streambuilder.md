@@ -1,9 +1,15 @@
+
+<a id="_apartado1"></a>
+
 # 4. El Widget StreamBuilder
 
 
 En apartados anteriores hemos visto como el widget *FutureBuilder* nos permite la generación de interfaces en Flutter a partir de datos asíncronos (*Future*).
 
-El giny `StreamBuilder` será muy parecido al `FutureBuilder`, con la diferencia de que este nos permitirá trabajar en tiempo real con datos asíncronos mediante `Streams`. 
+El widget `StreamBuilder` será muy parecido al `FutureBuilder`, con la diferencia de que este nos permitirá trabajar en tiempo real con datos asíncronos mediante `Streams`. 
+
+Future     → una carta
+Stream     → una conversación
 
 <br>
 
@@ -26,7 +32,7 @@ StreamBuilder(
 ```
 Este constructor recibe un *Stream*, con el origen de los datos, unos valores iniciales (`initialData`), y un método `builder` para construir la interfaz. Este `builder` recibirá un `BuildContext`, para saber la ubicación en el árbol de widgets, y un `AsyncSnapshot`, con la información sobre los acontecimientos que van sucediendo en el `Stream`. 
 
-En este snapshot recordamos que teníamos propiedades como `hasData`, para saber si el *Stream* ha devuelto datos, has sido necesario, para saber si contiene algún error, `conectationState`, para ver el estado del *Stream*, así como fecha y error, con la información que contiene el evento o posibles errores.
+En este snapshot recordamos que teníamos propiedades como `hasData`, para saber si el *Stream* ha devuelto datos, `hasError`, para saber si contiene algún error, `connectionState`, para ver el estado del *Stream*, así como datos y error, con la información que contiene el evento o posibles errores.
 
 <br>
 
@@ -92,6 +98,8 @@ Stream<String> obtenerHoraStream3() async* {
 }
 ```
 
+No es demasiado recomendable utilizar esta última función, pero se ofrece como curiosidad recursiva.
+
 ### Uso del Stream en un StreamBuilder
 
 Una vez tenemos definida la función que nos devuelva el Stream, vamos a aplicar el widget `StreamBuilder`, que estará vinculado a este *Stream* y se redibujará cada vez que haya un cambio.
@@ -103,7 +111,7 @@ class WidgetReloj extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: StreamBuilder(
+      body: StreamBuilder<String>(
           stream: obtenerHoraStream(),
           builder: (context, AsyncSnapshot<String> snapshot) {
             // Para ver el estado de la conexión
@@ -268,6 +276,7 @@ Vemos también los diferentes métodos que implementa esta clase. A continuació
 ```dart
   void dispose() {
     _tiempoController.close();
+    _statusController.close();
   }
 ```
 
@@ -282,7 +291,7 @@ Antes, sin embargo, de abordar esta clase principal, echamos un vistazo a los bo
 ```dart
 class BotonCrono extends StatelessWidget {
   const BotonCrono({super.key, required this.onPressed, required this.icon});
-  final dynamic onPressed;
+  final VoidCallback? onPressed;
   final IconData icon;
 
   @override
@@ -314,7 +323,8 @@ class Crono extends StatelessWidget {
   // Esta contendrá una propiedad de la clase Cronometro
   final Cronometro miCronometro = Cronometro();
 
-...}
+...
+}
 ```
 
 Ahora, el método build de la pantalla nos devolverá una estructura de aplicación Material (`Scaffold`), cuyo cuerpo será un `StreamBuilder`:
