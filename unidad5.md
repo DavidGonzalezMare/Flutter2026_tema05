@@ -208,7 +208,7 @@ El *Snapshot* que se nos devuelve contiene más información sobre la respuesta,
 
 Veamos de nuevo el ejemplo incluyendo la comprobación de este estado:
 
-```csharp
+```dart
 // Este widget se construirá en base a un 
 // FutureBuilder vinculado a la función asíncrona.
 
@@ -362,7 +362,7 @@ Entre las diferentes funcionalidades que nos ofrece, encontramos:
 
 Finalmente, dado que el paquete contiene código específico de la plataforma, deberemos recompilar y reiniciar la aplicación, ya que un *hot reload* o *hot restart* solo afecta al código Dart.
 
-Pasamos ahora a ver el código que nos implementa la funcionalidad para obtener la ubicación. Para ello, implementamos en el fichero `lib/services/geolocation_service.dart` la clase `GeolocationService`, que implementará el método `determinaPosicion()`.
+Pasamos ahora a ver el código que nos implementa la funcionalidad para obtener la ubicación. Para ello, implementamos en el fichero `lib/data/services/geolocation_service.dart` la clase `GeolocationService`, que implementará el método `determinaPosicion()`.
 
 ---
 
@@ -433,11 +433,11 @@ class GeolocationService {
 }
 ```
 
-Observemos que este método se declara como `static Future<Position?>`, lo que quiere decir que devuelve un tipo *Future* que se resolverá a un tipo *Position*. Este tipo `Position` está definido también en la librería *geolocator*, y representa una posición con su latitud y longitud.
+Observemos que este método se declara como `static Future<Position>`, lo que quiere decir que devuelve un tipo *Future* que se resolverá a un tipo *Position*. Este tipo `Position` está definido también en la librería *geolocator*, y representa una posición con su latitud y longitud.
 
-Sin embargo, lo que nos interesa **es cómo tratar este *Future* que se nos devuelve** y cómo dibujar el widget correspondiente. Para ello haremos uso de un widget *º* que dependerá de este *Future* para redibujarse.
+Sin embargo, lo que nos interesa **es cómo tratar este *Future* que se nos devuelve** y cómo dibujar el widget correspondiente. Para ello haremos uso de un widget que dependerá de este *Future* para redibujarse.
 
-Este widget se define en el fichero `lib/widgets/mostrar_coordenadas.dart` tendrá la siguiente estructura:
+Este widget se define en el fichero `lib/ui/widgets/mostrar_coordenadas.dart` tendrá la siguiente estructura:
 
 ```dart
 class WidgetMuestraCoordenadas extends StatelessWidget {
@@ -478,65 +478,61 @@ Una vez importado, podremos hacer uso del método `MapsLauncher.launchCoordinate
 Veamos ahora cuál es el contenido del componente `builder` de este widget:
 
 ```dart
-builder: (BuildContext context, AsyncSnapshot<Position> snapshot) {
-  String text = "";
-  double latitud = 0.0;
-  double longitud = 0.0;
+      builder: (BuildContext context, AsyncSnapshot<Position> snapshot) {
+        String text = "";
+        double latitud = 0.0;
+        double longitud = 0.0;
 
-  // Cuando el estado de la petición al servicio indica que ha finalizado
-  if (snapshot.connectionState == ConnectionState.done) {
-    // Comprobamos si tiene errores
-    if (snapshot.hasError) {
-      debugPrint(snapshot.error.toString());
-      text = "Error: ${snapshot.error.toString()}";
-    } else if (snapshot.hasData) {
-      // O si contiene datos. En este caso la longitud y la latitud
-      // y el texto para mostrarlas:
-      latitud = snapshot.data.latitude;
-      longitud = snapshot.data.longitude;
-      text = "Ubicación actual: ($latitud, $longitud)";
-    }
-
-    // Y creamos el widget, que mostrará centrado este texto
-    // y un botón para abrir Google Maps.
-
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(text),
-          if (snapshot.hasData) { // Mostramos el botón si tenemos datos
-            ElevatedButton(
-                onPressed: () async {
-                  try {
-                    await MapsLauncher.launchCoordinates(latitud, longitud);
-                  } catch (err) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content:
-                            Text("No se ha encontrado una aplicación de mapas"),
-                      ),
-                    );
-                  }
-                },
-                child: const Text("Abre la ubicación"))
+        // Cuando el estado de la petición al servicio indica que ha finalizado
+        if (snapshot.connectionState == ConnectionState.done) {
+          // Comprobamos si tiene errores
+          if (snapshot.hasError) {
+            debugPrint(snapshot.error.toString());
+            text = "Error: ${snapshot.error.toString()}";
+          } else if (snapshot.hasData) {
+            // O si contiene datos. En este caso la longitud y la latitud
+            // y el texto para mostrarlas:
+            latitud = snapshot.data!.latitude;
+            longitud = snapshot.data!.longitude;
+            text = "Ubicación actual: ($latitud, $longitud)";
           }
-        ],
-      ),
-    );
-  } else {
-    // Mientras no finalice la petición al servicio, muestra
-    // el indicador de progreso
 
-    return const Center(
-      child: SizedBox(
-        width: 200,
-        height: 200,
-        child: CircularProgressIndicator(),
-      ),
-    );
-  }
-},
+          // Y creamos el widget, que mostrará centrado este texto
+          // y un botón para abrir Google Maps.
+
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(text),
+                if (snapshot.hasData)
+                  // Mostramos el botón si tenemos datos
+                  ElevatedButton(
+                    onPressed: () async {
+                      try {
+                        await MapsLauncher.launchCoordinates(latitud, longitud);
+                      } catch (err) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              "No se ha encontrado una aplicación de mapas",
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                    child: const Text("Abre la ubicación"),
+                  ),
+              ],
+            ),
+          );
+        } else {
+          // Mientras no finalice la petición al servicio, muestra
+          // el indicador de progreso
+
+          return const MyCircularProgressIndicator();
+        }
+      },
 ```
 
 Como vemos, en primer lugar, se hacen varias comprobaciones sobre la respuesta de la función asíncrona mediante el `snapshot` que recibimos como argumento. Con `snapshot.connectionState` comprobamos el estado de la respuesta. Cuando este es `ConnectionState.done` significa que ya hemos obtenido la respuesta, de manera que comprobamos si se ha producido algún error (con `snapshot.hasError`), y si este `snapshot` contiene datos. En caso de que contenga información, se construye el mensaje para mostrar a partir de esta información y se devuelve en un widget de tipo Texto centrado. Mientras se esté esperando respuesta, lo que se dibujará es un indicador de progreso circular.
@@ -586,25 +582,8 @@ android.enableJetifier=true
 
 ## Función para obtener la posición
 
-El primer código que vamos a generar será una función para obtener la posición del dispositivo. Para ello, crearemos el fichero `lib/services/geolocation_service.dart`, con la clase `GeolocationService` y el método estático `determinaPosicion()`, que será una adaptación del método con el mismo nombre que hemos trabajado en el apartado anterior, y que hace uso de la librería *geolocator* para obtener las coordenadas GPS actuales. Esta función nos devolverá ya un Position con la latitud y la longitud.
+El primer código que vamos a generar será una función para obtener la posición del dispositivo. Este método lo hemos hecho ya en el apartado anterior, creando el fichero `lib/data/services/geolocation_service.dart`, con la clase `GeolocationService` y el método estático `determinaPosicion()`, que  hace uso de la librería *geolocator* para obtener las coordenadas GPS actuales. Esta función nos devolverá ya un Position con la latitud y la longitud.
 
-```dart
-import 'package:geolocator/geolocator.dart';
-
-class GeolocationService {
-  static Future<Map<String,double>> determinaPosicion() async {
-
-    ...
-    // Código para comprobar el servicio de geolocalización y los permisos 
-    ...
-
-    // Finalmente, si tenemos acceso a la geolocalitzación, la devolvemos:
-    Position pos = await Geolocator.getCurrentPosition();
-
-    return Map.from({"latitud": pos.latitude, "longitud": pos.longitude});
- }
-}
-```
 
 ## Obtención del tiempo
 
@@ -640,7 +619,7 @@ Podéis probar a copiar esta dirección en un navegador web, para ver cómo es l
 ```
 Lo que nos interesará son los datos que se encuentran en `current_weather`: temperatura, velocidad del viento, dirección del viento y código del tiempo.
 
-Para obtener esta información, crearemos un nuevo servicio. Concretamente la clase `WeatherService`, en el fichero `lib/services/weather_service.dart`. Esta clase implementará el método estático `obtenerClima` que realiza la petición correspondiente al servicio y devuelve esta información en forma de Future (`Future<dynamic>`).
+Para obtener esta información, crearemos un nuevo servicio. Concretamente la clase `WeatherService`, en el fichero `lib/data/services/weather_service.dart`. Esta clase implementará el método estático `obtenerClima` que realiza la petición correspondiente al servicio y devuelve esta información en forma de Future (`Future<dynamic>`).
 
 ```dart
 import 'dart:io';
@@ -676,7 +655,7 @@ Este código, como vemos, mantiene la estructura del código que utilizamos en l
 
 ## La pantalla principal
 
-La pantalla principal de la aplicación será un widget sin estado que llamaremos `WeatherScreen`, ubicada en `lib/screens/weather_screen.dart`.
+La pantalla principal de la aplicación será un widget sin estado que llamaremos `WeatherScreen`, ubicada en `lib/ui/screens/weather_screen.dart`.
 
 Esta pantalla se generará en términos de un tipo *Future*, que vendrá determinado por la ubicación del dispositivo:
 
@@ -720,11 +699,11 @@ builder: (BuildContext context, AsyncSnapshot snapshot) {
       // construimos con ellos el widget a mostrar.
       // Recordemos que snapshot.data contendrá el contenido
       // que ha resuelto la llamada asíncrona.
-      // Si todo va bien, el resultado será un Map (JSON),
+      // Si todo va bien, el resultado será un Position,
       // con la latitud i la longitud
 
-      double longitud = snapshot.data["longitud"];
-      double latitud = snapshot.data["latitud"];
+      double longitud = snapshot.data.longitude;
+      double latitud = snapshot.data.latitude;
 
       miTiempo = Center(
         child: Padding(
@@ -745,14 +724,14 @@ builder: (BuildContext context, AsyncSnapshot snapshot) {
     }
   }
 
-  return const LinearProgressIndicator();
+  return const MyCircularProgressIndicator();
 }
 
 ```
 
 Observemos algunos detalles:
 
-- Cuando el resultado de la función `determinaPosicion()` se resuelve, obtendremos en el `snapshot` un diccionario con la latitud y la longitud, que serán los parámetros con los que habrá que inicializar nuestro widget personalizado `WidgetClima`.
+- Cuando el resultado de la función `determinaPosicion()` se resuelve, obtendremos en el `snapshot` un Position con la latitud y la longitud, que serán los parámetros con los que habrá que inicializar nuestro widget personalizado `WidgetClima`.
   
 - El widget que se construye cuando se resuelve este futuro es una columna (`Column`), centrada (`Center`) y con 24 puntos de margen (`Padding`), con `EdgeInsets.all(24.0))`. Esta columna contendrá dos filas: la primera con un texto con las coordenadas, a modo de cabecera, y la segunda, el widget personalizado `WidgetClima`.
 
@@ -766,7 +745,7 @@ Existen varios servicios web de geocodificación (OpenCage Geocoder, Geonames, G
 
 ## El widget WidgetClima
 
-Finalmente, el widget que mostrará la información meteorológica actual será el widget personalizado `WidgetClima`. Lo podemos crear en el fichero `lib/widgets/widget_clima.dart`. Aunque podría tratarse de un widget sin estado, vamos a trabajarlo con estado.
+Finalmente, el widget que mostrará la información meteorológica actual será el widget personalizado `WidgetClima`. Lo podemos crear en el fichero `lib/ui/widgets/widget_clima.dart`. Aunque podría tratarse de un widget sin estado, vamos a trabajarlo con estado.
 
 Este widget tendrá la siguiente estructura:
 
@@ -797,6 +776,7 @@ class _WidgetClimaState extends State<WidgetClima> {
   @override
   void initState() {
     super.initState();
+    // Así evitamos lanzar la petición cuando el widget se reconstruye
     info = WeatherService.obtenerClima(
         longitud: widget.longitud, latitud: widget.latitud);
   }
@@ -820,7 +800,7 @@ class _WidgetClimaState extends State<WidgetClima> {
 Este estado define la propiedad `info`, como un `Future` que se resolverá a un objeto `dynamic`, y que será el resultado del método `obtenerClima`, definido en la clase `WeatherService`.
 
 Observemos que esta propiedad se ha definido como `late`. Esto se hace para indicar que el valor de una variable que requiere de inicialización se realizará posteriormente. En caso de que no hagamos esta inicialización posterior, el sistema lanzará la excepción ***LateInitializationError***. Por otra parte, esta inicialización se hace en el método `initState()`, de inicialización del estado.
-Observa que el Future se crea una única vez en initState() y no en build(), evitando lanzar varias veces la misma petición HTTP cuando el widget se reconstruye.
+Observa que el Future se crea una única vez en initState() y no en build(), **evitando lanzar varias veces la misma petición HTTP** cuando el widget se reconstruye.
 
 Después, el método `build`, consistirá en un ***FutureBuilder*** que depende de esta propiedad `info`. Vemos que se han definido también un par de métodos privados: `_obtenerWidgetDireccionViento` y `_obtenerIconoTiempo`, que servirán para obtener algunas partes del widget del tiempo resultante.
 
