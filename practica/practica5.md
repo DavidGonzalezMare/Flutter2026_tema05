@@ -55,7 +55,7 @@ Tenemos:
 - La carpeta `domain/entities` , con los modelos de `Continente` y `Pais`. Estas clases no sufrirán ningún cambio.
   
 - La carpeta `ui/screens`, con las diferentes pantallas y widgets, que habrá que adaptar para trabajar con `Futures`. 
-- 
+
 - La carpeta `ui/widgets`. En ella implementaremos la clase `MyWeatherInfo`. Como veis, se ha incorporado una clase `MyCircularProgressIndicator`, que no es más que un indicador de progreso circular que hemos envuelto en un `Center` y un `SizedBox` para personalizar la estética del mismo.
   
 - La carpeta `data/services`, que implementa la parte de acceso a los servicios, tanto de información de los países como de información meteorológica.
@@ -84,6 +84,25 @@ Este servicio no lo utilizaremos directamente en nuestra aplicación, sino que a
 
 Recordad que ahora necesitamos pasar la urlBase.
 
+<hr>
+
+Podéis crear una clase lib/config/config.dart en la que tengáis una constante estática con la url de la API:
+
+```dart
+// Esta es una clase de configuración. De momento ponemos el endpoint de la API
+class Config {
+  static const String urlApi =
+      "https://api-paises-uagm.onrender.com";
+}
+```
+
+Después cuando necesitéis llamar al repositorio de la práctica 2 lo podeís hacer así:
+
+```dart
+  final PaisesRepository _repository = PaisesRepository(Config.urlApi);
+```
+
+<hr>
 
 <br>
 
@@ -109,9 +128,17 @@ Para ello creamos la clase `WeatherService` en el fichero `lib/data/services/wea
 
 Recuerdad que ya disponéis de esta implementación en el ejemplo del tiempo, visto en la unidad 5, que hace uso de la **API de OpenMeteo**. Lo que tendremos que hacer es copiar este fichero (o crearlo si no lo hemos hecho todavía), y generar el correspondiente repositorio.
 
-Con el fin de crear el repositorio, creamos el fichero `lib/data/repository/wheather_respositry.dart` con la clase `WeatherRepository`. Esta clase ofrecerá el método estático:
+Con el fin de crear el repositorio, creamos el fichero `lib/data/repository/wheather_respository.dart` con la clase `WeatherRepository`. Esta clase ofrecerá el método estático:
 
-- `static Future<dynamic> obtenerClima({required double longitud, required double latitud }) async`: Que nos devolverá el resultado de invocar el mismo método del servicio, proporcionándole también la longitud y la latitud.
+- `static Future<dynamic> obtenerClima({required double longitud, required double latitud }) async`: Que nos devolverá el resultado de invocar el mismo método del servicio, proporcionándole también la longitud y la latitud:
+
+```dart
+class RepositoryWeather {
+  static Future<dynamic> obtenerClima({required double longitud, required double latitud }) async{
+    return WeatherService.obtenerClima(longitud: longitud, latitud: latitud);
+  }
+}
+```
 
 <br>
 

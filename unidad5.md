@@ -975,25 +975,25 @@ El método recibe un valor en coma flotante con la dirección del viento, expres
       nombreViento = "Gregal";
     } else if (direccionViento > 67.5 && direccionViento < 112.5) {
       icono = const Icon(Icons.east);
-      nombreViento = "Llevant";
+      nombreViento = "Levante";
     } else if (direccionViento > 112.5 && direccionViento < 157.5) {
       icono = const Icon(Icons.south_east);
-      nombreViento = "Xaloc";
+      nombreViento = "Jaloque";
     } else if (direccionViento > 157.5 && direccionViento < 202.5) {
       icono = const Icon(Icons.south);
-      nombreViento = "Migjorn";
+      nombreViento = "Mediodía";
     } else if (direccionViento > 202.5 && direccionViento < 247.5) {
       icono = const Icon(Icons.south_west);
-      nombreViento = "Llebeig/Garbí";
+      nombreViento = "Lebeche";
     } else if (direccionViento > 247.5 && direccionViento < 292.5) {
       icono = const Icon(Icons.west);
-      nombreViento = "Ponent";
+      nombreViento = "Poniente";
     } else if (direccionViento > 292.5 && direccionViento < 337.5) {
       icono = const Icon(Icons.north_west);
-      nombreViento = "Mestral";
+      nombreViento = "Mistral";
     } else {
       icono = const Icon(Icons.north);
-      nombreViento = "Tramuntana";
+      nombreViento = "Tramontana";
     }
     return Row(children: [
       Text(
